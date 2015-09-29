@@ -16,8 +16,11 @@ public class Prestamo {
     private int idPropietario;
     private double interes;
     private int cuotasRestantes;
+
     private DateTime fechaVencimiento;
     private DateTime fechaSiguientePago;
+    private DateTime fechaAprobacion;
+    private String estado;
     private Double cantidadTotal;
     private Double cantidadRestante;
     private String tipoPrestamo;
@@ -102,6 +105,26 @@ public class Prestamo {
     public void setValorCuota(Double valorCuota) {
         this.valorCuota = valorCuota;
     }
+
+    public DateTime getFechaAprobacion() {
+        return fechaAprobacion;
+    }
+
+    public void setFechaAprobacion(DateTime fechaAprobacion) {
+        this.fechaAprobacion = fechaAprobacion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+
+    
+    
     
     
 }

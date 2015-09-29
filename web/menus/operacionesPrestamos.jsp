@@ -218,57 +218,68 @@
                         </div>
                     </div>
 
-                    <c:if test="${registroPrestamo!=null}">
+                    <c:if test="${msgOperacion!=null}">
                         <div class="row">
                             <div class="col-lg-12">
                                 <div class="alert alert-info alert-dismissable">
                                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                                    <i class="fa fa-info-circle"></i>  ${registroPrestamo} <Strong># ${idPrestamo}</strong>
+                                    <i class="fa fa-info-circle"></i>  ${msgOperacion} <Strong># ${idPrestamo}</strong>
                                 </div>
                             </div>
                         </div>
                     </c:if>
 
 
-
+                    <c:if test="${tipoOperacion=='PAGAR CUOTA'}" >
+                        
+                    </c:if>
+                    
+                        <c:if test="${tipoOperacion==null}">
 
                     <div class="col-lg-12">
-                        <h2>Presione aceptar para aprobar el prestamo</h2>
+                        <h2>Presione aceptar  para realizar la operacion</h2>
                         <div class="table-responsive">
                             
                             <table class="table table-hover table-striped">
                                 <thead>
                                     <tr>
+                                        <th>Id</th>
                                         <th>Tipo</th>
-                                        <th>Monto</th>
-                                        <th>Cuotas</th>
-                                        <th>Solicitante</th>                                        
-                                        <th>Fecha Solicitud</th>                                        
-                                        <th>Dia Cuota</th>
+                                        <th>Monto Total</th>
+                                        <th>Por pagar</th>                                        
+                                        <th>Cuotas</th>                                                                                                                        
                                         <th>Interes</th>
+                                        <th>Fecha Siguiente Pago</th>
                                         <th>Valor Cuota</th>
-                                        <th>Accion</th>                                        
+                                        <th>Operacion</th>                                        
 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="solicitud" items="${solicitudesPrestamos}">
+                                    <c:forEach var="prestamo" items="${listaPrestamos}">
                                         <tr>
                                     <form action="${pageContext.request.contextPath}/ServletPrestamos">
                                         
-                                        <td><input hidden="true" name="idSolicitud" value="${solicitud.getId()}" >
-                                                    ${solicitud.getPrestamo().getTipoPrestamo()}</td>
-                                            <td>${solicitud.getPrestamo().getCantidadTotal()}</td>
-                                            <td>${solicitud.getPrestamo().getCuotasRestantes()}</td>
-                                            <td>${solicitud.getSolicitante().getNombre()}</td>                                            
-                                            <td>${solicitud.getFechaCreacion()}</td>
-                                            <td><input placeholder="DD/MM/YYYY" name="fechaPago"></td>
-                                            <td><input placeholder="" name="interes"></td>
-                                            <td><input placeholder="" name="valorCuota"></td>
-                                            <td><select name="tipoAccion"> 
-                                                    <option>APROBAR</option>
-                                                    <option>RECHAZAR</option>
-                                                </select>                                            
+                                        <input hidden="true" value="${prestamo.getId()}" name="idPrestamo">
+                                        <td>${prestamo.getId()}</td >                   
+                                        
+                                               <td>${prestamo.getTipoPrestamo()}</td>                                            
+                                            <td>${prestamo.getCantidadTotal()}</td>
+                                            <td>${prestamo.getCantidadRestante()}</td>                                            
+                                            <td>${prestamo.getCuotasRestantes()}</td>
+                                            <td>${prestamo.getInteres()}%</td>
+                                            <td>${prestamo.getFechaSiguientePago()}</td>
+                                            <td>${prestamo.getValorCuota()}</td>
+                                            <td><select name="tipoOperacion"> 
+                                                    <c:forEach var="operacion" items="${listaOperaciones}">
+                                                        <option>${operacion}</option>
+                                                    </c:forEach>
+                                                </select>   
+                                            </td>
+                                            
+
+						
+                                                                                     
                                             <td><input type="submit" name="operacionPrestamo" value="ok"></td>
                                             
                                             
@@ -285,6 +296,9 @@
                             
                         </div>
                     </div>
+                        </c:if>
+                    
+                    
                 </div>
 
 

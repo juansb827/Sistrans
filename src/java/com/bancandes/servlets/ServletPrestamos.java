@@ -86,18 +86,23 @@ public class ServletPrestamos extends HttpServlet {
      }
 
      
-     private ArrayList<Prestamo> verPrestamos(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
+     private void verPrestamos(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
      {
          ArrayList<Prestamo> prestamos=null;
          switch(usuario.getRol())
          {
              case Usuario.CLIENTE:
+             prestamos=PrestamoDao.findPrestamosByPropietario(usuario.getId(), null);
              break;                 
              
                  
                  
          }
-         return prestamos;
+         request.setAttribute("listaPrestamos",prestamos);
+         request.setAttribute("listaOperaciones", usuario.getOperacionesPrestamo());
+         request.getRequestDispatcher("menus/operacionesPrestamos.jsp").forward(request, response);
+         
+         
      }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

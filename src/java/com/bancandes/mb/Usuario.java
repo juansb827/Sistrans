@@ -156,7 +156,7 @@ public class Usuario {
          return operacionesCuenta;
     }
     
-     public ArrayList<String> getOperacionesPresmo()
+     public ArrayList<String> getOperacionesPrestamo()
     {
          ArrayList<String> operacionesPrestamo=new ArrayList<>();
        
@@ -164,12 +164,11 @@ public class Usuario {
          {
              
              case GERENTE_OFICINA:
-                 operacionesPrestamo.add(Operacion.APROBAR);
-                 operacionesPrestamo.add(Operacion.RECHAZAR);
+                 
                  operacionesPrestamo.add(Operacion.CERRAR);
                          ;
              case CLIENTE:    
-                 operacionesPrestamo.add(Operacion.SOLICITAR);
+                 
              case  CAJERO:
                  operacionesPrestamo.add(Operacion.PAGAR_CUOTA);
                  operacionesPrestamo.add(Operacion.PAGAR_CUOTA_EXTRAORDINARIA);                

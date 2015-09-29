@@ -9,8 +9,10 @@ import com.bancandes.mb.Prestamo;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.joda.time.DateTime;
 
 /**
  *
@@ -19,6 +21,7 @@ import java.util.logging.Logger;
 public class PrestamoDao {
     
     private static String PRESTAMO_POR_ID="SELECT * FROM PRESTAMOS WHERE ID=";
+    private static String PRESTAMOS_DE_USUARIO="SELECT * FROM PRESTAMOS WHERE ID_PROPIETARIO=";
     
     
     //RF7
@@ -52,4 +55,41 @@ public class PrestamoDao {
         return prestamo;
     }
     
+    public static ArrayList<Prestamo> findPrestamosByPropietario(int idPropietario,Conexion con)
+    {   
+        ArrayList<Prestamo> prestamos=null;
+        try {
+           if(con==null)  con=new Conexion();
+            prestamos=new ArrayList<>();
+            String sentencia=PRESTAMOS_DE_USUARIO+idPropietario;                  
+            ResultSet rs = con.getConexion().prepareStatement(sentencia).executeQuery();
+            if(rs.next())
+            {
+                Prestamo prestamo=new  Prestamo();
+                prestamo.setId(rs.getInt("ID"));                
+                prestamo.setCantidadTotal(rs.getDouble("CANTIDAD_TOTAL"));
+                prestamo.setCuotasRestantes(rs.getInt("CUOTAS_RESTANTES"));
+                prestamo.setTipoPrestamo(rs.getString("TIPO_PRESTAMO"));
+                prestamo.setIdPropietario(rs.getInt("ID_PROPIETARIO") );
+                prestamo.setInteres(rs.getDouble("INTERES"));
+                prestamo.setCuotasRestantes(rs.getInt("CUOTAS_RESTANTES"));
+                prestamo.setFechaVencimiento(new DateTime(rs.getDate("FECHA_VENCIMIENTO")));
+                prestamo.setCantidadTotal(rs.getDouble("CANTIDAD_TOTAL"));
+                prestamo.setCantidadRestante(rs.getDouble("CANTIDAD_RESTANTE"));
+                prestamo.setTipoPrestamo(rs.getString("TIPO_PRESTAMO"));
+                prestamo.setFechaSiguientePago(new DateTime(rs.getDate("FECHA_SIGUIENTE_PAGO")));
+                prestamo.setValorCuota(rs.getDouble("VALOR_CUOTA"));
+                prestamo.setFechaAprobacion(new DateTime(rs.getDate("FECHA_APROBACION")));
+                prestamo.setEstado(rs.getString("ESTADO"));
+                prestamos.add(prestamo);
+            }
+            
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(PrestamoDao.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return prestamos;
+    } 
+            
 }
