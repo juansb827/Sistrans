@@ -29,18 +29,21 @@ public class Consultas {
 
 
     
-    public static String insertar(Conexion conn,HashMap<String, Object> datos, Metadata[] metadata, String tabla) 
+    public static void insertar(Conexion conn,HashMap<String, Object> datos, Metadata[] metadata, String tabla) throws DaoException 
     {
-        try {
-            if(conn==null) conn=new Conexion();
-            String insert=crearSentenciaINSERT(datos, metadata, tabla);
+        
+            if(conn==null) try {
+                conn=new Conexion();
+                    String insert=crearSentenciaINSERT(datos, metadata, tabla);
             PreparedStatement ps=conn.getConexion().prepareStatement(insert);
             ps.execute();
-        } catch (SQLException ex) {
-            Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
-            return ex.getMessage();
-        }
-        return null;        
+            } catch (SQLException ex) {
+                Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
+                throw new DaoException();
+            
+            }
+            
+        
     }
     
     public static String crearSentenciaINSERT(HashMap<String, Object> datos, Metadata[] metadata, String tabla) {
@@ -89,7 +92,7 @@ public class Consultas {
 
     }
     
-    public static int darNumFilas(String tabla)
+    public static int darNumFilas(String tabla) throws DaoException
     {
        int numFilas=-1; 
         try {
@@ -105,6 +108,7 @@ public class Consultas {
         } catch (SQLException ex) {
             
             Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
+            throw new  DaoException();
         }
         return numFilas;
     }

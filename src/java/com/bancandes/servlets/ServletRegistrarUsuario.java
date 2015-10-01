@@ -5,12 +5,15 @@
  */
 package com.bancandes.servlets;
 
+import com.bancandes.dao.DaoException;
 import com.bancandes.mb.Metadata;
 import com.bancandes.mb.Usuario;
 import com.sun.faces.spi.ConfigurationResourceProviderFactory;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +40,14 @@ public class ServletRegistrarUsuario extends HttpServlet {
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
             HashMap<String,Object> infoUsuario=Metadata.convertRequestToHashMap(Usuario.infoColumnas, request);            
-            request.setAttribute("creoUsuario", Usuario.crear(infoUsuario));
+            String msg="Se creo el usuario";
+            try {
+                Usuario.crear(infoUsuario);
+            } catch (DaoException ex) {
+                Logger.getLogger(ServletRegistrarUsuario.class.getName()).log(Level.SEVERE, null, ex);
+                msg="Error";
+            }
+            request.setAttribute("creoUsuario", msg );
             request.getRequestDispatcher("menus/usuarios.jsp").forward(request, response);            
             
         }

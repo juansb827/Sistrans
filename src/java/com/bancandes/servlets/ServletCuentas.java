@@ -6,13 +6,17 @@
 package com.bancandes.servlets;
 
 import com.bancandes.dao.CuentaDao;
+import com.bancandes.dao.DaoException;
 import com.bancandes.dao.OperacionDao;
+import com.bancandes.dao.UsuarioDao;
 import com.bancandes.mb.Cuenta;
 import com.bancandes.mb.Operacion;
 import com.bancandes.mb.Usuario;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -35,35 +39,35 @@ public class ServletCuentas extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */
-            Usuario usuario=(Usuario) request.getSession().getAttribute("usuarioLogeado");
-            String pagina=request.getParameter("paginaCuenta");
+            Usuario usuario = (Usuario) request.getSession().getAttribute("usuarioLogeado");
+            String pagina = request.getParameter("paginaCuenta");
             //paginaParaElResultado
-            int paginaDeseada=1;
-            if(pagina!=null)
-            {
-                
-                paginaDeseada=Integer.parseInt(pagina);
+            int paginaDeseada = 1;
+            if (pagina != null) {
+
+                paginaDeseada = Integer.parseInt(pagina);
             }
             
-            
-                    
-            
-                realizarOperacion(request, response,usuario);
-                confirmarOperacion(request, response, usuario);
-                mostrarListaCuentas(request, response, usuario);
-               
-            
-            
-            
+            String operacion=request.getParameter("tipoAccion");
+            String confirmarOperacion = request.getParameter("confirmarOperacion");
+            if(operacion!=null)
+            {
+            realizarOperacion(request, response, usuario);
+            }else if(confirmarOperacion!=null)
+            {
+            confirmarOperacion(request, response, usuario);
+            }else
+            {
+            mostrarListaCuentas(request, response, usuario);
+            }
+
         }
     }
 
-    
-    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -102,108 +106,146 @@ public class ServletCuentas extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-    private void confirmarOperacion(HttpServletRequest request, HttpServletResponse response,Usuario usuario)
-    {   
+
+    private void confirmarOperacion(HttpServletRequest request, HttpServletResponse response, Usuario usuario) throws ServletException, IOException {
+
+        String confirmarOperacion = request.getParameter("confirmarOperacion");
         
-        String confirmarOperacion=request.getParameter("confirmarOperacion");
-        if(confirmarOperacion==null) return;
-        String id=request.getParameter("idCuenta" );
-        int idCuenta=Integer.parseInt(id);
-        int monto=Integer.parseInt( request.getParameter("monto" ));
-        String metodo=request.getParameter("metodo");
+        String id = request.getParameter("idCuenta");
+        int idCuenta = Integer.parseInt(id);
+        int monto = Integer.parseInt(request.getParameter("monto"));
+        String metodo = request.getParameter("metodo");
+
+        Operacion op = new Operacion();
+
         
-        Operacion op=new Operacion();
-        
-                op.setAutor(usuario);
-                op.setMonto(Double.parseDouble(request.getParameter("monto")));
-                op.setMetodo(request.getParameter("metodo"));                
-                op.setOrigen(idCuenta);
-                String msgOperacion=null;
+        op.setMonto(Double.parseDouble(request.getParameter("monto")));
+        op.setMetodo("EFECTIVO");    
+        op.setIdCuenta(idCuenta);
+        op.setTipo(confirmarOperacion);
         switch(confirmarOperacion)
         {
-            case  Operacion.RETIRAR:
-                
-                msgOperacion=OperacionDao.registrarRetiro(op);
-                break;
-            case    
-                Operacion.CONSIGNAR:                                  
-                msgOperacion=OperacionDao.registrarConsignacion(op);
-                break;
-        }
-        request.setAttribute("msgOperacion", msgOperacion );
-    }
-            
-    
-    private void realizarOperacion(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
-    {
-        String operacion=  request.getParameter("tipoAccion");
-        if(operacion==null) return;
-        String id=request.getParameter("idCuenta");
-        int idCuenta=Integer.parseInt( id);
-        switch(operacion)
-        {
-            
-            
-            case Operacion.CERRAR:                
-                request.setAttribute("msgOperacion", CuentaDao.cerrarCuenta(idCuenta) );
-                request.setAttribute("idCuenta",idCuenta);
-                break;
-            case Operacion.ABRIR:
-                request.setAttribute("msgOperacion", CuentaDao.abrirCuenta(idCuenta) );
-                request.setAttribute("idCuenta",idCuenta);
+            case Operacion.CONSIGNAR:
+                op.setDestino(idCuenta);
                 break;
             case Operacion.RETIRAR:
-                request.setAttribute("tipoOperacion",Operacion.RETIRAR);
-                request.setAttribute("idCuenta", id);
-                request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
+                op.setOrigen(idCuenta);
                 break;
-            case Operacion.CONSIGNAR:    
-                request.setAttribute("tipoOperacion",Operacion.CONSIGNAR);
-                request.setAttribute("idCuenta", id);
-                request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
-                break;
-    }
                 
         }
+            
         
-    
-    
-    private void mostrarListaCuentas(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
-    {
         
-        ArrayList<Cuenta> listaCuentas=null;
-            switch(usuario.getRol())
-            {
-                case Usuario.GERENTE_OFICINA:
-                    listaCuentas=CuentaDao.getCuentasbyCreador(usuario.getId());
+        String msgOperacion = "Operacion exitosa";
+        try {
+            OperacionDao.registrarOperacionCuenta(usuario, op);
+        } catch (DaoException ex) {
+            Logger.getLogger(ServletCuentas.class.getName()).log(Level.SEVERE, null, ex);
+            msgOperacion="error "+ex.getMessage();
+        }
+        request.setAttribute("msgOperacion",msgOperacion);
+        request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
+    }
+
+    private void realizarOperacion(HttpServletRequest request, HttpServletResponse response, Usuario usuario) throws ServletException, IOException {
+        String operacion = request.getParameter("tipoAccion");        
+        String id = request.getParameter("idCuenta");
+        int idCuenta = Integer.parseInt(id);
+        String mensaje = null;
+
+        Operacion opera = new Operacion();
+        opera.setTipo(operacion);
+        opera.setIdCuenta(idCuenta);
+
+        if (mensaje == null) {
+            switch (operacion) {
+
+                case Operacion.CERRAR:
+                    mensaje = "LA CUENTA FUE CERRADA";
+                     {
+                        try {
+                            OperacionDao.registrarOperacionCuenta(usuario, opera);
+                        } catch (DaoException ex) {
+                            Logger.getLogger(ServletCuentas.class.getName()).log(Level.SEVERE, null, ex);
+                            mensaje = "ERROR AL CERRAR";
+                        }
+                    }
+                    request.setAttribute("msgOperacion", mensaje);
+                    request.setAttribute("idCuenta", idCuenta);
                     break;
-                case Usuario.CLIENTE:    
-                    listaCuentas=CuentaDao.getCuentasByPropietario(usuario.getId());
+                case Operacion.ABRIR:
+                    mensaje = "LA CUENTA FUE ABIERTA";
+                     {
+                        try {
+                            OperacionDao.registrarOperacionCuenta(usuario, opera);
+                        } catch (DaoException ex) {
+                            Logger.getLogger(ServletCuentas.class.getName()).log(Level.SEVERE, null, ex);
+                            mensaje = "ERROR AL ABRIR";
+                        }
+                    }
+                    request.setAttribute("msgOperacion", mensaje);
+                    request.setAttribute("idCuenta", idCuenta);
                     break;
-                case Usuario.GERENTE_GENERAL:
-                case Usuario.ADMINISTRADOR:
-                    listaCuentas=CuentaDao.getAllCuentas(20, 0);
-                    case Usuario.CAJERO:
-                    listaCuentas=CuentaDao.getAllCuentas(20, 0);
+                case Operacion.RETIRAR:
+                    request.setAttribute("tipoOperacion", Operacion.RETIRAR);
+                    request.setAttribute("idCuenta", id);
+                    request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
+                    break;
+                case Operacion.CONSIGNAR:
+                    request.setAttribute("tipoOperacion", Operacion.CONSIGNAR);
+                    request.setAttribute("idCuenta", id);
+                    request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
                     break;
             }
-            
-       
-            
-            
-            request.setAttribute("listaCuentas", listaCuentas);
-            request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
+        }
+
     }
-    private ArrayList<Cuenta> TestListaCuentas()
-    {
-        ArrayList<Cuenta> listaCuentas=new ArrayList<>();
-        Cuenta cuenta=new Cuenta();
+
+    private void mostrarListaCuentas(HttpServletRequest request, HttpServletResponse response, Usuario usuario) throws ServletException, IOException {
+
+        
+        ArrayList<Cuenta> listaCuentas = null;
+        switch (usuario.getRol()) {
+            case Usuario.GERENTE_OFICINA:
+                listaCuentas = CuentaDao.getCuentasbyCreador(usuario.getId());
+                break;
+            case Usuario.CLIENTE:
+                listaCuentas = CuentaDao.getCuentasByPropietario(usuario.getId());
+                break;
+            case Usuario.GERENTE_GENERAL:
+            case Usuario.ADMINISTRADOR:
+                listaCuentas = CuentaDao.getAllCuentas(20, 0);
+            case Usuario.CAJERO:
+                if(request.getParameter("buscarCuentas")!=null)
+                {
+                   String correo=request.getParameter("correoPropietario");
+                    
+                    Usuario usuarioCuentas=UsuarioDao.findUsuarioByCorreo(correo, null);                           
+                    listaCuentas = CuentaDao.getCuentasByPropietario(usuarioCuentas.getId());
+                    if(listaCuentas.size()==0) 
+                    {
+                        request.setAttribute("msgOperacion", "No se encontraron cuentas para "+correo);
+                    }
+                    //guarda el correo para mostrar las cuentas luego
+                    
+                    request.setAttribute("correoPropietario", correo);
+                    
+                }
+                break;
+        }
+
+        request.setAttribute("listaCuentas", listaCuentas);
+        request.getRequestDispatcher("menus/cuentas.jsp").forward(request, response);
+    }
+
+    private ArrayList<Cuenta> TestListaCuentas() {
+        ArrayList<Cuenta> listaCuentas = new ArrayList<>();
+        Cuenta cuenta = new Cuenta();
         cuenta.setFechaCreacion(null);
         cuenta.setTipo("LOL");
         listaCuentas.add(cuenta);
         return listaCuentas;
-                
-        
+
     }
 
 }

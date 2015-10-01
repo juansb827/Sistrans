@@ -7,6 +7,8 @@ package com.bancandes.dao;
 
 import com.bancandes.mb.Cuenta;
 import com.bancandes.mb.Operacion;
+import com.bancandes.mb.Prestamo;
+import com.bancandes.mb.Usuario;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -19,90 +21,117 @@ import org.joda.time.DateTime;
  */
 public class OperacionDao {
     
-    public static String registrarRetiro(Operacion op)
-    {
+   
         
-        Cuenta cuenta=CuentaDao.findCuentaById(op.getOrigen());
-        double nuevoSaldo=cuenta.getSaldo()-op.getMonto();
-        if( nuevoSaldo<0) 
-        return  "Saldo insuficiente, faltan "+nuevoSaldo;
-        else{
+    
+    
+    public static String  registrarOperacionPrestamo(Usuario autor,Prestamo prestamo,Operacion operacion) throws DaoException
+    {
+                    String msg=null;
+        try {
+            HashMap<String,String> infoPrestamo;
+            HashMap<String,Object> infoOperacion=new HashMap<String, Object>();
+            infoOperacion.put("ID", Consultas.darNumFilas(Operacion.NOMBRE_TABLA));
+            infoOperacion.put("FECHA", Consultas.getCurrentDate());
             
-            HashMap<String,Object> info=new HashMap<>();
-            int id=Consultas.darNumFilas("OPERACIONES");
-            if (id==-1) return "Error";
-            info.put("ID", ""+id+1 );
-            DateTime fecha=Consultas.getCurrentDate();
-            info.put("FECHA", fecha);
-            info.put("ORIGEN", ""+op.getOrigen());
-            info.put("DESTINO", ""+op.getDestino());
-            info.put("TIPO", "RETIRO");
-            info.put("MONTO", ""+op.getMonto());
-            info.put("ID_AUTOR", ""+op.getAutor().getId());
-            info.put("METODO", op.getMetodo());
-            String msg="";
-            Conexion conn;
-            try {
-                conn = new Conexion();
-                if(Consultas.insertar(conn,info, Operacion.infoColumnas, "OPERACIONES")!=null)
-                 return "Error"    ;
+            infoOperacion.put("TIPO", operacion.getTipo());
+            infoOperacion.put("ID_ AUTOR", autor.getId());
+            
+            
+            
+
+            Conexion con=null;
+            switch(operacion.getTipo())
+            {
+                case  Operacion.PAGAR_CUOTA:
+                case Operacion.PAGAR_CUOTA_EXTRAORDINARIA:
+                    infoOperacion.put("MONTO", prestamo.getValorCuota());
+                    //Si es efectivo el origen es 0;
+                infoOperacion.put("ORIGEN","0");
+            //Destino cero significa que le paga al banco
+                infoOperacion.put("DESTINO", "0");           
                 
-                String update="UPDATE CUENTAS SET SALDO="+nuevoSaldo+" WHERE ID="+op.getOrigen();
-                int rs = conn.getConexion().prepareStatement(update).executeUpdate();                
-                msg="Se ha registrado el retiro";
+                infoOperacion.put("METODO", operacion.getMetodo());
+            infoOperacion.put("ID_PRESTAMO", prestamo.getId());
+            con=new Conexion();
+            Consultas.insertar(con,infoOperacion, Operacion.infoColumnas, Operacion.NOMBRE_TABLA);
+            double nuevosaldo=prestamo.getCantidadRestante()-prestamo.getValorCuota();
+            double cuotasRestantes=prestamo.getCuotasRestantes()-1;
+            DateTime siguientePago=prestamo.getFechaSiguientePago().plusMonths(1);
+            String sentencia="UPDATE PRESTAMOS SET CANTIDAD_RESTANTE="+nuevosaldo+",CUOTAS_RESTANTES="+cuotasRestantes+",FECHA_SIGUIENTE_PAGO='"+Consultas.toDate(siguientePago)+"', WHERE ID="+prestamo.getId();
             
-            } catch (SQLException ex) {
-                Logger.getLogger(OperacionDao.class.getName()).log(Level.SEVERE, null, ex);
-                msg="NO Se ha registrado el retiro";
+            int res=con.getConexion().prepareStatement(sentencia).executeUpdate();
+                msg= "se registro la operacion correctamente";
+               break;
+             case Operacion.CERRAR:                 
+                 if(prestamo.getCantidadRestante()!=0) msg ="El prestamo no se ha pagado completamente";
+                 else{
+                   con=new Conexion();
+                   Consultas.insertar(null,infoOperacion, Operacion.infoColumnas, Operacion.NOMBRE_TABLA);
+                   String sentenciaCerrar="UPDATE PRESTAMOS SET ESTADO='CERRADO' WHERE ID="+prestamo.getId();            
+                  int res1=con.getConexion().prepareStatement(sentenciaCerrar).executeUpdate();
+                   msg= "se cerro el prestamo";
+                 }
+                    
+                    
             }
             
-            return msg;
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(OperacionDao.class.getName()).log(Level.SEVERE, null, ex);
+            return "Error";
+        }
         
-        }       
+                
+                
         
-        
+        return msg;
     }
         
     
-    public static String registrarConsignacion(Operacion op)
-    {
-        
-        Cuenta cuenta=CuentaDao.findCuentaById(op.getOrigen());
-        
-            double nuevoSaldo=cuenta.getSaldo()+op.getMonto();
-            HashMap<String,Object> info=new HashMap<>();
-            int id=Consultas.darNumFilas("OPERACIONES");
-            if (id==-1) return "Error";
-            info.put("ID", ""+id+1 );
-            DateTime fecha=Consultas.getCurrentDate();
-            info.put("FECHA", fecha);
-            info.put("ORIGEN", ""+op.getOrigen());
-            info.put("DESTINO", ""+op.getDestino());
-            info.put("TIPO", "CONSIGNACION");
-            info.put("MONTO", ""+op.getMonto());
-            info.put("ID_AUTOR", ""+op.getAutor().getId());
-            info.put("METODO", op.getMetodo());
-            String msg="";
-            Conexion conn;
-            try {
-                conn = new Conexion();
-                
-                if(Consultas.insertar(conn,info, Operacion.infoColumnas, "OPERACIONES")!=null)
-                    return "Error ";
-                 
-                
-                String update="UPDATE CUENTAS SET SALDO="+nuevoSaldo+" WHERE ID="+op.getOrigen();
-                int rs = conn.getConexion().prepareStatement(update).executeUpdate();                
-                msg="Se ha registrado la consignacion";
-            
-            } catch (SQLException ex) {
-                Logger.getLogger(OperacionDao.class.getName()).log(Level.SEVERE, null, ex);
-                msg="NO Se ha registrado la consignacion";
+   public static void registrarOperacionCuenta(Usuario autor,Operacion operacion) throws DaoException 
+   {
+       
+       HashMap<String,Object> infoOperacion=new HashMap<>();
+       //atributos que tiene toda operacion 
+       infoOperacion.put("ID", Consultas.darNumFilas(Operacion.NOMBRE_TABLA)+1);
+            infoOperacion.put("FECHA", Consultas.getCurrentDate());            
+            infoOperacion.put("TIPO", operacion.getTipo());
+            infoOperacion.put("ID_AUTOR", autor.getId());
+            infoOperacion.put("ID_CUENTA", operacion.getIdCuenta());
+       
+       switch(operacion.getTipo())
+       {
+           case Operacion.CERRAR:
+               
+               CuentaDao.cerrarCuenta(operacion.getIdCuenta());
+               break;
+           case Operacion.ABRIR:
+               
+               CuentaDao.abrirCuenta(operacion.getIdCuenta());
+               break;
+           case Operacion.RETIRAR:
+               CuentaDao.registrarRetiro(operacion);  
+               break;
+           case Operacion.CONSIGNAR:    
+               CuentaDao.registrarConsignacion(operacion);
+               break;
+                   
+       }
+            if(operacion.getTipo().equals(Operacion.CONSIGNAR) || operacion.getTipo().equals(Operacion.RETIRAR)  )   
+            {
+                //atributos que solo tienen las operaciones bancarias
+            infoOperacion.put("ORIGEN", ""+operacion.getOrigen());
+            infoOperacion.put("DESTINO", ""+operacion.getDestino());
+            infoOperacion.put("MONTO", ""+operacion.getMonto());
+            infoOperacion.put("METODO", ""+operacion.getMetodo());
             }
             
-            return msg;
-           
-        
-        
-    }
+            
+       Consultas.insertar(null,infoOperacion, Operacion.infoColumnas, Operacion.NOMBRE_TABLA);
+               
+       
+   }
+    
+    
 }

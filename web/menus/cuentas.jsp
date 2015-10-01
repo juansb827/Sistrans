@@ -286,9 +286,20 @@
                         </div>    
                     </c:if>
                     
+                      <c:if test="${ usuarioLogeado.getRol()=='CAJERO' && tipoOperacion==null}">
+                        <h2>Ingrese el correo del propietario</h2>
+                        <form>
+                        <input name="correoPropietario">
+                        <input type="submit" name="buscarCuentas" value="buscar">
+                        </form>
+                        
+                        
+                    </c:if>
                     
-                        <%-- Ocultar la tabla al consignar o retirar--%>
-                        <c:if test="${tipoOperacion==null}" >
+                    
+                    
+                        <%-- Ocultar la tabla--%>
+                        <c:if test="${listaCuentas!=null}" >
                     <div class="col-lg-12">
                         <h2>Cuentas</h2>
                         <div class="table-responsive">
@@ -301,7 +312,7 @@
                                         <th>Tipo</th>
                                         <th>Saldo</th>
                                         <th>Estado</th>
-                                        <th>Fecha Apertura</th>                                        
+                                        <th>Fecha Creacion</th>                                        
                                         <th>Accion</th>                                        
 
                                     </tr>

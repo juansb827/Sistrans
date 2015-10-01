@@ -6,6 +6,7 @@
 package com.bancandes.mb;
 
 import com.bancandes.dao.Consultas;
+import com.bancandes.dao.DaoException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -166,13 +167,15 @@ public class Usuario {
              case GERENTE_OFICINA:
                  
                  operacionesPrestamo.add(Operacion.CERRAR);
-                         ;
+                 break;
+                         
              case CLIENTE:    
-                 
+                 break;
              case  CAJERO:
                  operacionesPrestamo.add(Operacion.PAGAR_CUOTA);
                  operacionesPrestamo.add(Operacion.PAGAR_CUOTA_EXTRAORDINARIA);                
-            break;
+                 break;
+            
               
                  
          } 
@@ -181,7 +184,7 @@ public class Usuario {
     
     
     //Todo pasar a usuarioDao
-    public static String crear(HashMap<String,Object> datos)
+    public static void crear(HashMap<String,Object> datos) throws DaoException
     {
         
         
@@ -191,11 +194,11 @@ public class Usuario {
         
         
         int numFilas=Consultas.darNumFilas(USUARIOS);        
-        if (numFilas==-1) return error;
+        
         
         datos.put("ID", ""+numFilas+1);
-        if(Consultas.insertar(null,datos,infoColumnas, USUARIOS)==null) return bien;
-        else return error;
+        Consultas.insertar(null,datos,infoColumnas, USUARIOS);
+        
         
     }
     

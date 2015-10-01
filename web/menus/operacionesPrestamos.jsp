@@ -234,10 +234,21 @@
                         
                     </c:if>
                     
-                        <c:if test="${tipoOperacion==null}">
+                    <c:if test="${ (usuarioLogeado.getRol()=='CAJERO'  ||usuarioLogeado.getRol()=='GERENTE OFICINA') && tipoOperacion==null}">
+                        <h2>Ingrese el correo del propietario</h2>
+                        <form>
+                        <input name="correoPropietario">
+                        <input type="submit" name="buscarPrestamos" value="buscar">
+                        </form>
+                        
+                        
+                    </c:if>
+                    
+                    
+                    <c:if test="${listaPrestamos!=null}">
 
                     <div class="col-lg-12">
-                        <h2>Presione aceptar  para realizar la operacion</h2>
+                        <h2>Prestamos</h2>
                         <div class="table-responsive">
                             
                             <table class="table table-hover table-striped">
@@ -256,6 +267,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                 
+                                     
                                     <c:forEach var="prestamo" items="${listaPrestamos}">
                                         <tr>
                                     <form action="${pageContext.request.contextPath}/ServletPrestamos">
@@ -278,7 +291,7 @@
                                             </td>
                                             
 
-						
+                                            
                                                                                      
                                             <td><input type="submit" name="operacionPrestamo" value="ok"></td>
                                             
@@ -289,14 +302,15 @@
                                     </form>                                            
                                         </tr>
                                     </c:forEach>
-                              
+                                        
+                                          
 
                                 </tbody>
                             </table>
                             
                         </div>
                     </div>
-                        </c:if>
+                  </c:if>
                     
                     
                 </div>

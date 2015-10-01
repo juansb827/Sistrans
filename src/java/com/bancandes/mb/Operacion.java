@@ -15,6 +15,7 @@ public class Operacion {
     
     
     
+    public final static String NOMBRE_TABLA="OPERACIONES";
     public final static Metadata[] infoColumnas={
      new Metadata("ID",  Metadata.NUMERO) ,
      new Metadata("FECHA",  Metadata.FECHA) ,
@@ -24,6 +25,8 @@ public class Operacion {
      new Metadata("MONTO",  Metadata.NUMERO) ,
      new Metadata("ID_AUTOR",  Metadata.NUMERO) ,
      new Metadata("METODO",  Metadata.CADENA) ,
+     new Metadata("ID_CUENTA",  Metadata.NUMERO) ,
+     new Metadata("ID_PRESTAMO",  Metadata.NUMERO) ,
  
      
         
@@ -54,6 +57,8 @@ public class Operacion {
      Double monto;
      Usuario autor;
      String metodo;
+     private long idCuenta;
+     private long idPrestamo;
 
     public long getId() {
         return id;
@@ -121,6 +126,22 @@ public class Operacion {
 
     public void setAutor(Usuario autor) {
         this.autor = autor;
+    }
+
+    public long getIdCuenta() {
+        return idCuenta;
+    }
+
+    public void setIdCuenta(long idCuenta) {
+        this.idCuenta = idCuenta;
+    }
+
+    public long getIdPrestamo() {
+        return idPrestamo;
+    }
+
+    public void setIdPrestamo(long idPrestamo) {
+        this.idPrestamo = idPrestamo;
     }
      
      

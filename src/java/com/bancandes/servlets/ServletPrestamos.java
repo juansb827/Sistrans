@@ -6,15 +6,21 @@
 package com.bancandes.servlets;
 
 import com.bancandes.dao.CuentaDao;
+import com.bancandes.dao.DaoException;
 import com.bancandes.dao.OficinaDao;
+import com.bancandes.dao.OperacionDao;
 import com.bancandes.dao.PrestamoDao;
 import com.bancandes.dao.SolicitudPrestamoDao;
+import com.bancandes.dao.UsuarioDao;
+import com.bancandes.mb.Operacion;
 import com.bancandes.mb.Prestamo;
 import com.bancandes.mb.SolicitudPrestamo;
 import com.bancandes.mb.Usuario;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -44,6 +50,8 @@ public class ServletPrestamos extends HttpServlet {
             Usuario usuario=(Usuario) request.getSession().getAttribute("usuarioLogeado");
             
          String menu=request.getParameter("menu");
+         if(menu!=null)
+         {
             if( menu.equals("solicitudes"))
          { 
             verSolicitudesPrestamos(request, response, usuario);
@@ -51,7 +59,15 @@ public class ServletPrestamos extends HttpServlet {
          {
              verPrestamos(request, response, usuario);
          }
+         }
             
+         String buscarPrestamos=request.getParameter("buscarPrestamos");
+         if(buscarPrestamos!=null)
+         {
+               
+               verPrestamos(request, response, usuario);
+         }
+         
    
         }
     }
@@ -75,10 +91,7 @@ public class ServletPrestamos extends HttpServlet {
             }
                 DateTime dateTime=null;
                 
-            if(request.getParameter("aprobarPrestamo")!=null)
-            {
-                System.err.println("probar prestamo");  
-            }
+            
             request.setAttribute("solicitudesPrestamos",solicitudesPrestamos);
             request.getRequestDispatcher("menus/solicitudesPrestamos.jsp").forward(request, response);
          
@@ -93,17 +106,54 @@ public class ServletPrestamos extends HttpServlet {
          {
              case Usuario.CLIENTE:
              prestamos=PrestamoDao.findPrestamosByPropietario(usuario.getId(), null);
-             break;                 
+                 break;
+             case Usuario.GERENTE_OFICINA:   
+             case Usuario.CAJERO:
+                 if(request.getParameter("buscarPrestamos")!=null)
+                {
+                   String correo=request.getParameter("correoPropietario");
+                    
+                    Usuario usuarioPrestamos=UsuarioDao.findUsuarioByCorreo(correo, null);                           
+                    prestamos = PrestamoDao.findPrestamosByPropietario(usuarioPrestamos.getId(),null);
+                    if(prestamos.size()==0) 
+                    {
+                        request.setAttribute("msgOperacion", "No se encontraron prestamos para "+correo);
+                    }
+                    //guarda el correo para mostrar las cuentas luego.
+                    
+                    request.setAttribute("correoPropietario", correo);
+                    
+                }
+                break;
+                            
              
                  
                  
          }
          request.setAttribute("listaPrestamos",prestamos);
          request.setAttribute("listaOperaciones", usuario.getOperacionesPrestamo());
-         request.getRequestDispatcher("menus/operacionesPrestamos.jsp").forward(request, response);
-         
+         request.getRequestDispatcher("menus/operacionesPrestamos.jsp").forward(request, response);        
          
      }
+     
+     private void registrarOperacion(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
+     {
+         String tipoOperacion=request.getParameter("tipoOperacion");
+         int idPrestamo=Integer.parseInt(request.getParameter("idPrestamo"));
+         Operacion operacion=new Operacion();
+         operacion.setMetodo("EFECTIVO");         
+         operacion.setTipo(tipoOperacion);         
+         Prestamo prestamo=PrestamoDao.findPrestamoById(idPrestamo, null);
+        try {
+            OperacionDao.registrarOperacionPrestamo(usuario,prestamo,operacion );
+        } catch (DaoException ex) {
+            Logger.getLogger(ServletPrestamos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         
+     }
+     
+     
+     
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.

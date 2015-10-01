@@ -6,11 +6,13 @@
 package com.bancandes.dao;
 
 import com.bancandes.mb.Cuenta;
+import com.bancandes.mb.Operacion;
 import com.sun.javafx.geom.CubicApproximator;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joda.time.DateTime;
@@ -77,10 +79,10 @@ public class CuentaDao {
         return getCuentas(CONSULTA_INFORMACION_CUENTAS);
     }
     
-    public static String cerrarCuenta(int idCuenta)
+    public static void cerrarCuenta(long idCuenta) throws DaoException
     {
         String horror="UPDATE CUENTAS SET ESTADO='CERRADA',SALDO=0 WHERE ID="+idCuenta;
-         String mensaje="";
+         
         Conexion con;
             try {
                 
@@ -88,26 +90,22 @@ public class CuentaDao {
                 
                 PreparedStatement ps = con.getConexion().prepareStatement(horror);                
                 int i = ps.executeUpdate();
-                if(i>0)
-                {
-                    mensaje="Se cerro la cuenta";
-                }
-       
+         
             } catch (SQLException ex) {
                 Logger.getLogger(CuentaDao.class.getName()).log(Level.SEVERE, null, ex);
-                mensaje="Error, no se pudo completar la operacion";
+                 throw new DaoException();
             }
             
-       return mensaje;           
+       
                 
         
     }
     
     
-       public static String abrirCuenta(int idCuenta)
+       public static void abrirCuenta(long idCuenta) throws DaoException
     {
-        String horror="UPDATE CUENTAS SET ESTADO='ABIERTA',SALDO=0 WHERE ID="+idCuenta;
-         String mensaje="";
+        String horror="UPDATE CUENTAS SET ESTADO='ACTIVA',SALDO=0 WHERE ID="+idCuenta;
+         
         Conexion con;
             try {
                 
@@ -115,23 +113,23 @@ public class CuentaDao {
                 
                 PreparedStatement ps = con.getConexion().prepareStatement(horror);                
                 int i = ps.executeUpdate();
-                if(i>0)
+                if(i==0)
                 {
-                    mensaje="Se abrio la cuenta";
+                    throw new DaoException();
                 }
        
             } catch (SQLException ex) {
                 Logger.getLogger(CuentaDao.class.getName()).log(Level.SEVERE, null, ex);
-                mensaje="Error, no se pudo completar la operacion";
+                throw new DaoException();
             }
             
-       return mensaje;           
+       
                 
         
     }
        
        
-       public static Cuenta getCuenta(String sentencia) {
+       public static Cuenta getCuenta(String sentencia) throws DaoException {
         Cuenta cuenta=null;
         
         Conexion con;
@@ -152,6 +150,7 @@ public class CuentaDao {
             
         } catch (SQLException ex) {
             Logger.getLogger(CuentaDao.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DaoException();
         }
         return cuenta;
 
@@ -159,9 +158,64 @@ public class CuentaDao {
        
        
        
-       public static Cuenta findCuentaById(long idCuenta)
+       public static Cuenta findCuentaById(long idCuenta) throws DaoException
        {
            return getCuenta("SELECT * FROM CUENTAS WHERE ID="+idCuenta);
        }
-
+       
+       
+        public static void registrarRetiro(Operacion op) throws DaoException
+    {
+        
+        Cuenta cuenta=CuentaDao.findCuentaById(op.getIdCuenta());
+        
+        
+        double nuevoSaldo=cuenta.getSaldo()-op.getMonto();
+        if( nuevoSaldo<0) 
+        throw new DaoException( "Saldo insuficiente, faltan "+nuevoSaldo);
+        
+        Conexion conn;
+        try {
+            conn = new Conexion();
+            String update="UPDATE CUENTAS SET SALDO="+nuevoSaldo+" WHERE ID="+op.getIdCuenta();
+                int rs = conn.getConexion().prepareStatement(update).executeUpdate();                
+        } catch (SQLException ex) {
+            Logger.getLogger(CuentaDao.class.getName()).log(Level.SEVERE, null, ex);
+            throw new DaoException();
+        }
+                
+        
+        
+        
+        
+        
+    }
+        
+        public static void registrarConsignacion(Operacion op) throws DaoException
+    {
+        
+        Cuenta cuenta=CuentaDao.findCuentaById(op.getIdCuenta());
+        
+            double nuevoSaldo=cuenta.getSaldo()+op.getMonto();
+            
+            Conexion conn;
+            try {
+                conn = new Conexion();
+                
+                
+                String update="UPDATE CUENTAS SET SALDO="+nuevoSaldo+" WHERE ID="+op.getIdCuenta();
+                int rs = conn.getConexion().prepareStatement(update).executeUpdate();                
+                
+            
+            } catch (SQLException ex) {
+                Logger.getLogger(OperacionDao.class.getName()).log(Level.SEVERE, null, ex);
+                throw new DaoException();
+            }
+            
+            
+           
+        
+        
+    }
+    
 }

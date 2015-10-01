@@ -22,6 +22,7 @@ public class PrestamoDao {
     
     private static String PRESTAMO_POR_ID="SELECT * FROM PRESTAMOS WHERE ID=";
     private static String PRESTAMOS_DE_USUARIO="SELECT * FROM PRESTAMOS WHERE ID_PROPIETARIO=";
+    private static String PRESTAMOS_DE_OFICINA="SELECT * FROM PRESTAMOS WHERE ID_PROPIETARIO=";
     
     
     //RF7
@@ -53,17 +54,19 @@ public class PrestamoDao {
         }       
         
         return prestamo;
+    
+    
     }
     
-    public static ArrayList<Prestamo> findPrestamosByPropietario(int idPropietario,Conexion con)
-    {   
+    
+    private static ArrayList<Prestamo> getPrestamos(String sentencia){
         ArrayList<Prestamo> prestamos=null;
+        Conexion con;
         try {
-           if(con==null)  con=new Conexion();
-            prestamos=new ArrayList<>();
-            String sentencia=PRESTAMOS_DE_USUARIO+idPropietario;                  
+            con = new Conexion();
+                prestamos=new ArrayList<>();
             ResultSet rs = con.getConexion().prepareStatement(sentencia).executeQuery();
-            if(rs.next())
+        while(rs.next())
             {
                 Prestamo prestamo=new  Prestamo();
                 prestamo.setId(rs.getInt("ID"));                
@@ -83,13 +86,26 @@ public class PrestamoDao {
                 prestamo.setEstado(rs.getString("ESTADO"));
                 prestamos.add(prestamo);
             }
-            
-            
-            
         } catch (SQLException ex) {
             Logger.getLogger(PrestamoDao.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return prestamos;
+        return  prestamos;
+        
+    }
+    
+    public static ArrayList<Prestamo> findPrestamosByPropietario(int idPropietario,Conexion con)
+    {   
+        
+            String sentencia=PRESTAMOS_DE_USUARIO+idPropietario;                  
+            return getPrestamos(sentencia);
+    } 
+    
+      public static ArrayList<Prestamo> findPrestamosByOficina(int idOficina,Conexion con)
+    {   
+        
+            String sentencia=PRESTAMOS_DE_USUARIO+"";                  
+            return getPrestamos(sentencia);
     } 
             
+    
 }
