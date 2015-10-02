@@ -5,6 +5,7 @@
  */
 package com.bancandes.mb;
 
+import java.text.DecimalFormat;
 import org.joda.time.DateTime;
 
 /**
@@ -16,7 +17,7 @@ public class Prestamo {
     private int idPropietario;
     private double interes;
     private int cuotasRestantes;
-
+    private int cuotasTotales;
     private DateTime fechaVencimiento;
     private DateTime fechaSiguientePago;
     private DateTime fechaAprobacion;
@@ -25,6 +26,7 @@ public class Prestamo {
     private Double cantidadRestante;
     private String tipoPrestamo;
     private Double valorCuota;
+    
 
     public int getId() {
         return id;
@@ -75,6 +77,7 @@ public class Prestamo {
     }
 
     public Double getCantidadTotal() {
+        
         return cantidadTotal;
     }
 
@@ -120,6 +123,14 @@ public class Prestamo {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public int getCuotasTotales() {
+        return cuotasTotales;
+    }
+
+    public void setCuotasTotales(int cuotasTotales) {
+        this.cuotasTotales = cuotasTotales;
     }
 
 

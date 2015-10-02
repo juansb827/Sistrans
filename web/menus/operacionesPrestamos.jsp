@@ -229,7 +229,34 @@
                         </div>
                     </c:if>
 
-
+                     <c:if test="${tipoOperacion=='PAGAR CUOTA EXTRAORDINARIA'}" >
+                      <div class="col-lg-12">
+                            <form action="${pageContext.request.contextPath}/ServletPrestamos">
+                                
+                             <div class="form-group">
+                                <label>Numero Prestamo</label>
+                                <input class="form-c    ontrol" name="idPrestamo" value="${idPrestamo}" >
+                                <input hidden="true" name="tipoOperacion" value="${tipoOperacion}"
+                            </div>
+                                
+                            <div class="form-group">
+                                <label>Cantidad</label>
+                                <input class="form-control" name="monto" placeholder="cantidad">
+                            </div>
+                                
+                             <div class="form-group">
+                               <label>Metodo</label>
+                              <select name="metodo">
+                              <option>EFECTIVO</option>
+                                </select>
+                            </div>
+                                
+                            <button type="submit" class="btn btn-default" name="confirmarOperacion" value="CONFIRMAR">CONFIRMAR</button>
+                            
+                            </form>
+                        </div>    
+                    </c:if>
+                    
                     <c:if test="${tipoOperacion=='PAGAR CUOTA'}" >
                         
                     </c:if>

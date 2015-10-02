@@ -1,4 +1,5 @@
-<%@page import="com.bancandes.mb.Cuenta"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="com.bancandes.dao.FilaEnConsulta"%>
 <%@page import="com.bancandes.mb.Usuario"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%-- 
@@ -81,6 +82,7 @@
                                     <div class="media">
                                         <span class="pull-left">
                                             <img class="media-object" src="http://placehold.it/50x50" alt="">
+
                                         </span>
                                         <div class="media-body">
                                             <h5 class="media-heading"><strong>John Smith</strong>
@@ -203,7 +205,7 @@
                     <div class="row">
                         <div class="col-lg-12">
                             <h1 class="page-header">
-                                Cuentas:
+                                Consultas:
 
 
                             </h1>
@@ -223,143 +225,73 @@
                             <div class="col-lg-12">
                                 <div class="alert alert-info alert-dismissable">
                                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                                    <i class="fa fa-info-circle"></i> ${msgOperacion}
+                                    <i class="fa fa-info-circle"></i>  ${msgOperacion} <Strong># ${idPrestamo}</strong>
                                 </div>
                             </div>
                         </div>
                     </c:if>
 
-                    
-                    <c:if test="${tipoOperacion=='RETIRAR'}" >
-                        
-                        <div class="col-lg-12">
-                            <form action="${pageContext.request.contextPath}/ServletCuentas">
-                                
-                             <div class="form-group">
-                                <label>Numero Cuenta:</label>
-                                <input class="form-control" name="idCuenta" value="${idCuenta}" >
-                            </div>
-                                
-                            <div class="form-group">
-                                <label>Cantidad</label>
-                                <input class="form-control" name="monto" placeholder="cantidad">
-                            </div>
-                                
-                             <div class="form-group">
-                               <label>Metodo</label>
-                              <select name="metodo">
-                              <option>EFECTIVO</option>
-                                </select>
-                            </div>
-                                
-                            <button type="submit" class="btn btn-default" name="confirmarOperacion" value="RETIRAR">RETIRAR</button>
-                            
-                            </form>
-                        </div>
-                    </c:if>
-                    
-                    
-                    <c:if test="${tipoOperacion=='CONSIGNAR'}" >
-                      <div class="col-lg-12">
-                            <form action="${pageContext.request.contextPath}/ServletCuentas">
-                                
-                             <div class="form-group">
-                                <label>Numero Cuenta:</label>
-                                <input class="form-c    ontrol" name="idCuenta" value="${idCuenta}" >
-                            </div>
-                                
-                            <div class="form-group">
-                                <label>Cantidad</label>
-                                <input class="form-control" name="monto" placeholder="cantidad">
-                            </div>
-                                
-                             <div class="form-group">
-                               <label>Metodo</label>
-                              <select name="metodo">
-                              <option>EFECTIVO</option>
-                                </select>
-                            </div>
-                                
-                            <button type="submit" class="btn btn-default" name="confirmarOperacion" value="CONSIGNAR">CONSIGNAR</button>
-                            
-                            </form>
-                        </div>    
-                    </c:if>
-                    
-                      <c:if test="${ usuarioLogeado.getRol()=='CAJERO' && tipoOperacion==null}">
-                        <h2>Ingrese el correo del propietario</h2>
+                    <c:if test="${listaBusuqeda==null}">
                         <form>
-                        <input name="correoPropietario">
-                        <input type="submit" name="buscarCuentas" value="buscar">
+                            <select name="consulta">
+                                <option value="CONSULTA_CLIENTE">Consultar clientes</option>
+                                <option value="CONSULTA_CUENTAS">Consultar cuentas</option>
+                                <option value="CONSULTA_OPERACIONES">Consultar operaciones</option>
+                                <option value="CONSULTA__MAS ACTIVOS">Usuarios mas activos</option>
+                                
+                            </select>
+                            <input type="submit" name="consultar" value="BUSCAR">
                         </form>
-                        
-                        
                     </c:if>
                     
-                    
-                    
-                        <%-- Ocultar la tabla--%>
-                       <c:if test="${listaCuentas!=null}" >
+                    <c:if test="${listaBusqueda!=null}">
+
                     <div class="col-lg-12">
-                        <h2>Cuentas</h2>
+                        <h2>.</h2>
                         <div class="table-responsive">
-                            <form action="${pageContext.request.contextPath}/ServletCuentas">
+                            
                             <table class="table table-hover table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Correo Propietario</th>
-                                        <th>Propietario</th>
-                                        <th>Tipo</th>
-                                        <th>Saldo</th>
-                                        <th>Estado</th>
-                                        <th>Fecha Creacion</th>                                        
-                                        <th>Accion</th>                                        
+                                        <c:forEach var="columna" items="${listaBusqueda.get(0).getDatos()}">
+                                            <th>
+                                                ${columna}
+                                            </th>    
+                                        </c:forEach>
+                                            
 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="cuenta" items="${listaCuentas}">
-                                    <form action="${pageContext.request.contextPath}/ServletCuentas">
+                                    
+                                   
+                                
+                                    <c:forEach var="filaEnConsulta" items="${listaBusqueda}" begin="1">
                                         <tr>
-                                            <td>${cuenta.getCorreoPropietario()}</td>
-                                            <td>${cuenta.getNombrePropietario()}</td>
-                                            <td>${cuenta.getTipo()}</td>                                            
-                                            <td>${cuenta.getSaldo()}</td>
-                                            <td>${cuenta.getEstado()}              
-                                            <td>${cuenta.getFechaCreacion()}</td>
+                                        <c:forEach var="columna" items="${filaEnConsulta.getDatos()}">
                                             <td>
-                                                <% Cuenta cuenta=(Cuenta)pageContext.getAttribute("cuenta");
-                                                   Usuario logeado=(Usuario)session.getAttribute("usuarioLogeado");
-                                                   //si no es gerente y esta cerrada no deja hacer operaiones
-                                                   boolean ac=!logeado.getRol().equals(Usuario.GERENTE_OFICINA) && cuenta.getEstado().equals(Cuenta.CERRADA) ;
-                                                   String disabled=(ac==true)?"disabled":"asfaf";
-                                                   pageContext.setAttribute("disabled", disabled);
-                                                   System.out.println("sobrevivio");
-                                                %>
-                                                <select name="tipoAccion"  >
-                                                    
-                                              <<c:forEach var="operacion" items="${usuarioLogeado.getOperacionesCuenta()}">
-                                                  <option>${operacion}</option>
-                                                </c:forEach>
-                                                    
-                                                </select>
+                                                ${columna}
                                             </td>
-                                        <input hidden="true" name="idCuenta" value="${cuenta.getId()}">
-                                            <td><input type="submit" ${disabled} value="Confirmar"></td>
-                                            
-                                        </tr>
-                                    </form> 
+                                        
                                     </c:forEach>
-                              
+                                        </tr>
+                                    </c:forEach>
+                                    
+                                     
+                                    
+                                        
+                                          
 
                                 </tbody>
                             </table>
-                            </form>
+                            
                         </div>
                     </div>
+                  </c:if>
+                    
+                    
                 </div>
-                        </c:if>
- 
+
 
 
 

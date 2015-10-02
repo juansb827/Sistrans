@@ -211,11 +211,23 @@ public class CuentaDao {
                 Logger.getLogger(OperacionDao.class.getName()).log(Level.SEVERE, null, ex);
                 throw new DaoException();
             }
-            
-            
-           
-        
         
     }
+        
+        public static ArrayList<FilaEnConsulta> busquedaInfoCuentas(HashMap<String,Object> filtros,ArrayList<String> agrupar) throws DaoException
+        {
+            
+            
+            String sentencia="SELECT ID_PROPIETARIO,ID_CREADOR,CORREO_PROPIETARIO,TIPO,ESTADO,SALDO,FECHA_ULTIMA_OPERACION FROM \n" +
+"((CUENTAS INNER JOIN (SELECT CORREO AS CORREO_PROPIETARIO,ID AS ID_US  FROM USUARIOS t) ON ID_PROPIETARIO=ID_US)\n" +
+"LEFT JOIN \n" +
+"(SELECT  MAX (FECHA) AS FECHA_ULTIMA_OPERACION,ID_CUENTA AS IDC2 FROM OPERACIONES GROUP BY ID_CUENTA)\n" +
+"ON CUENTAS.ID=IDC2) ";
+            return Consultas.hacerConsulta(sentencia, 100);
+                    
+                    
+        }
+                
+                
     
 }

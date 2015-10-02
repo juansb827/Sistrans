@@ -67,9 +67,20 @@ public class ServletPrestamos extends HttpServlet {
                
                verPrestamos(request, response, usuario);
          }
+         String operacionPrestamo=request.getParameter("operacionPrestamo");
+         if(operacionPrestamo!=null)
+         {
+             registrarOperacion(request, response, usuario);
+         }
+         String confirmarOperacion=request.getParameter("confirmarOperacion");
+         if(confirmarOperacion!=null){
+             confirmarOperacion(request, response, usuario);
+         }
          
    
         }
+        
+        
     }
 
      private void verSolicitudesPrestamos(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
@@ -136,19 +147,62 @@ public class ServletPrestamos extends HttpServlet {
          
      }
      
-     private void registrarOperacion(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
+     private void confirmarOperacion(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
+     {
+         String msg="Se registro la operacion";
+         String tipoOperacion=request.getParameter("tipoOperacion");
+         int idPrestamo=Integer.parseInt(request.getParameter("idPrestamo"));
+         
+         Operacion operacion=new Operacion();
+         operacion.setMetodo("EFECTIVO");         
+         operacion.setTipo(tipoOperacion);       
+         operacion.setIdPrestamo(idPrestamo);
+         double monto= Double.parseDouble(request.getParameter("monto"));
+         operacion.setMonto( monto);
+         
+         
+        try {
+            OperacionDao.registrarOperacionPrestamo(usuario,idPrestamo,operacion );
+        } catch (DaoException ex) {
+            Logger.getLogger(ServletPrestamos.class.getName()).log(Level.SEVERE, null, ex);
+            msg="Error "+ex.getMessage();
+        }
+         
+        request.setAttribute("msgOperacion", msg);
+        request.getRequestDispatcher("menus/operacionesPrestamos.jsp").forward(request, response);
+     }
+     
+      private void registrarOperacion(HttpServletRequest request, HttpServletResponse response,Usuario usuario) throws ServletException, IOException
      {
          String tipoOperacion=request.getParameter("tipoOperacion");
          int idPrestamo=Integer.parseInt(request.getParameter("idPrestamo"));
          Operacion operacion=new Operacion();
          operacion.setMetodo("EFECTIVO");         
-         operacion.setTipo(tipoOperacion);         
-         Prestamo prestamo=PrestamoDao.findPrestamoById(idPrestamo, null);
-        try {
-            OperacionDao.registrarOperacionPrestamo(usuario,prestamo,operacion );
+         operacion.setTipo(tipoOperacion);       
+         operacion.setIdPrestamo(idPrestamo);
+         String msg=null;
+         switch(tipoOperacion)
+         {
+             case Operacion.PAGAR_CUOTA:
+                 try {
+            OperacionDao.registrarOperacionPrestamo(usuario,idPrestamo,operacion );
+            msg ="Se realizo la operacion";
         } catch (DaoException ex) {
             Logger.getLogger(ServletPrestamos.class.getName()).log(Level.SEVERE, null, ex);
+            msg="Error "+ex.getMessage();
         }
+             break;
+             case Operacion.PAGAR_CUOTA_EXTRAORDINARIA:
+                 request.setAttribute("idPrestamo", idPrestamo);
+                 request.setAttribute("tipoOperacion", tipoOperacion);
+                 
+             
+         }
+         
+         request.setAttribute("msgOperacion", msg);
+         request.getRequestDispatcher("menus/operacionesPrestamos.jsp").forward(request, response);
+         
+        
          
      }
      

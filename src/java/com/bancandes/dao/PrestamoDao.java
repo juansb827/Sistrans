@@ -5,6 +5,7 @@
  */
 package com.bancandes.dao;
 
+import com.bancandes.mb.Operacion;
 import com.bancandes.mb.Prestamo;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,7 +27,7 @@ public class PrestamoDao {
     
     
     //RF7
-    public static Prestamo findPrestamoById(int idPrestamo,Conexion con )
+    public static Prestamo findPrestamoById(long idPrestamo,Conexion con )
     {
         Prestamo prestamo=null;
         String sentencia=PRESTAMO_POR_ID+idPrestamo;
@@ -36,10 +37,24 @@ public class PrestamoDao {
             ResultSet rs = con.getConexion().prepareStatement(sentencia).executeQuery();
             if(rs.next())
             {
+                
                 prestamo.setId(rs.getInt("ID"));                
                 prestamo.setCantidadTotal(rs.getDouble("CANTIDAD_TOTAL"));
                 prestamo.setCuotasRestantes(rs.getInt("CUOTAS_RESTANTES"));
+                prestamo.setCuotasTotales(rs.getInt("CUOTAS_TOTALES"));
                 prestamo.setTipoPrestamo(rs.getString("TIPO_PRESTAMO"));
+                prestamo.setIdPropietario(rs.getInt("ID_PROPIETARIO") );
+                prestamo.setInteres(rs.getDouble("INTERES"));
+                prestamo.setCuotasRestantes(rs.getInt("CUOTAS_RESTANTES"));
+                prestamo.setFechaVencimiento(new DateTime(rs.getDate("FECHA_VENCIMIENTO")));
+                prestamo.setCantidadTotal(rs.getDouble("CANTIDAD_TOTAL"));
+                prestamo.setCantidadRestante(rs.getDouble("CANTIDAD_RESTANTE"));
+                prestamo.setTipoPrestamo(rs.getString("TIPO_PRESTAMO"));
+                prestamo.setFechaSiguientePago(new DateTime(rs.getDate("FECHA_SIGUIENTE_PAGO")));
+                prestamo.setValorCuota(rs.getDouble("VALOR_CUOTA"));
+                prestamo.setFechaAprobacion(new DateTime(rs.getDate("FECHA_APROBACION")));
+                prestamo.setEstado(rs.getString("ESTADO"));
+                
                 
                 
                         
@@ -72,6 +87,7 @@ public class PrestamoDao {
                 prestamo.setId(rs.getInt("ID"));                
                 prestamo.setCantidadTotal(rs.getDouble("CANTIDAD_TOTAL"));
                 prestamo.setCuotasRestantes(rs.getInt("CUOTAS_RESTANTES"));
+                prestamo.setCuotasTotales(rs.getInt("CUOTAS_TOTALES"));
                 prestamo.setTipoPrestamo(rs.getString("TIPO_PRESTAMO"));
                 prestamo.setIdPropietario(rs.getInt("ID_PROPIETARIO") );
                 prestamo.setInteres(rs.getDouble("INTERES"));
@@ -106,6 +122,80 @@ public class PrestamoDao {
             String sentencia=PRESTAMOS_DE_USUARIO+"";                  
             return getPrestamos(sentencia);
     } 
+      
+   public static void registrarPagoCuota(Prestamo prestamo,Conexion con) throws DaoException
+   {
+       double nuevosaldo = prestamo.getCantidadRestante() - prestamo.getValorCuota();
+       double cuotasRestantes = prestamo.getCuotasRestantes() - 1;
+       DateTime siguientePago = prestamo.getFechaSiguientePago().plusMonths(1);
+       String sentencia = "UPDATE PRESTAMOS SET CANTIDAD_RESTANTE=" + nuevosaldo + ",CUOTAS_RESTANTES=" + cuotasRestantes + ",FECHA_SIGUIENTE_PAGO=" + Consultas.toDate(siguientePago) + " WHERE ID=" + prestamo.getId();
+        
+            try {
+                
+               if(con==null)  con = new Conexion();
+                
+                PreparedStatement ps = con.getConexion().prepareStatement(sentencia);                
+                int i = ps.executeUpdate();
+                if(i==0)
+                {
+                    throw new DaoException();
+                }
+       
+            } catch (SQLException ex) {
+                Logger.getLogger(CuentaDao.class.getName()).log(Level.SEVERE, null, ex);
+                throw new DaoException();
+            }
+   }
             
+   
+      public static void registrarPagoCuotaExtraordinaria(Prestamo prestamo,Operacion op,Conexion con) throws DaoException
+   {
+       double saldo=prestamo.getCantidadRestante();
+       double sobrante;
+       if(saldo<op.getMonto())
+       {
+           
+           sobrante=op.getMonto()-saldo;
+           
+           
+           
+           
+       }
+       else{
+           saldo=saldo-op.getMonto();
+           sobrante=0;
+       }
+       
+       String cadenaFecha=null;
+       int cuotasRestantes =(int) (saldo/prestamo.getValorCuota());       
+       int cuotasAdelantadas= (int) ((op.getMonto()-sobrante)/prestamo.getValorCuota());
+       if(cuotasRestantes==0)
+           cadenaFecha="''";
+       else if (cuotasAdelantadas>=1)
+       {
+           DateTime siguientePago = prestamo.getFechaSiguientePago().plusMonths(cuotasAdelantadas);
+           cadenaFecha=Consultas.toDate(siguientePago);
+           
+       }
+       
+       String sentencia = "UPDATE PRESTAMOS SET CANTIDAD_RESTANTE=" + saldo + ",CUOTAS_RESTANTES=" + cuotasRestantes + ",FECHA_SIGUIENTE_PAGO="+cadenaFecha + " WHERE ID=" + prestamo.getId();  
+        
+            try {
+                
+               if(con==null)  con = new Conexion();
+                
+                PreparedStatement ps = con.getConexion().prepareStatement(sentencia);                
+                int i = ps.executeUpdate();
+                if(i==0)
+                {
+                    throw new DaoException();
+                }
+       
+            } catch (SQLException ex) {
+                Logger.getLogger(CuentaDao.class.getName()).log(Level.SEVERE, null, ex);
+                throw new DaoException();
+            }
+   }
+
     
 }

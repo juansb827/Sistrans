@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +57,20 @@ public class UsuarioDao {
         public static Usuario findUsuarioById(long id,Conexion con)  {      
         return getUsuario(USUARIO_POR_ID+id,con); }
         
+        public static ArrayList<FilaEnConsulta> consultaUsuariosBancandes() throws DaoException
+        {
+            return Consultas.hacerConsulta("SELECT * FROM USUARIOS", 100);
+        }
         
+        public static ArrayList<FilaEnConsulta> consultarUsariosMasActivos() throws DaoException
+        {
+            String sentencia="SELECT TIPO_DOC,NUM_DOC,NOMBRE,CORREO,TELEFONO,CIUDAD,ROL,ID,PAIS,DEPARTAMENTO,DIRECCION,CODIGO_POSTAL,NUM_OPERACIONES FROM USUARIOS\n" +
+"INNER JOIN\n" +
+"(SELECT ID_AUTOR, MAX(OPERACIONES) AS NUM_OPERACIONES FROM\n" +
+"(SELECT ID_AUTOR,COUNT(*) AS OPERACIONES FROM OPERACIONES GROUP BY ID_AUTOR)\n" +
+"GROUP BY ID_AUTOR)\n" +
+"ON USUARIOS.ID=ID_AUTOR";
+            return Consultas.hacerConsulta(sentencia, 100);
+        }
         
 }

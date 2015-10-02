@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,13 +34,15 @@ public class Consultas {
     public static void insertar(Conexion conn,HashMap<String, Object> datos, Metadata[] metadata, String tabla) throws DaoException 
     {
         
-            if(conn==null) try {
+            try {
+                if(conn==null) 
                 conn=new Conexion();
                     String insert=crearSentenciaINSERT(datos, metadata, tabla);
             PreparedStatement ps=conn.getConexion().prepareStatement(insert);
             ps.execute();
             } catch (SQLException ex) {
                 Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
+                conn.rollback();
                 throw new DaoException();
             
             }
@@ -53,7 +57,8 @@ public class Consultas {
         boolean vacio=true;
         for (int i = 0; i < metadata.length; i++) {
             Metadata meta = metadata[i];
-            Object dato = datos.get(meta.getNombreColumna());
+            String nombreCol=meta.getNombreColumna();
+            Object dato = datos.get(nombreCol);
             
             int tipoColumna=meta.getTipoCampo();
             
@@ -147,8 +152,47 @@ public class Consultas {
     }
     
     
+public static ArrayList<FilaEnConsulta> hacerConsulta(String consulta, int limiteResultado) throws DaoException
+    {
+        ArrayList<FilaEnConsulta> tabla=new ArrayList<FilaEnConsulta>();
+        Statement statement=null;
+        ResultSet rs=null;
+        try {
+            Conexion con=new Conexion();
+            Statement st=con.getConexion().createStatement();            
+             rs=st.executeQuery(consulta);
+            ResultSetMetaData rsmd=rs.getMetaData();
+            int numColumnas=rsmd.getColumnCount();
+            FilaEnConsulta cabecera=new FilaEnConsulta(numColumnas);
 
-            
+            for(int i=0;i<numColumnas;i++)
+            {
+                cabecera.setDato(i,rsmd.getColumnName(i+1) ) ;
+
+
+            }
+            tabla.add(cabecera);
+
+
+            int filasAgregadas=0;
+            while(rs.next() && filasAgregadas<limiteResultado)
+            {
+                FilaEnConsulta fila=new FilaEnConsulta(numColumnas);
+                for(int i=0;i<numColumnas;i++)
+                {
+                    fila.setDato(i, rs.getString(i+1));
+                }
+                tabla.add(fila);
+                filasAgregadas++;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new DaoException();
+        }
+        return tabla;
+
+    }  
             
     
 }

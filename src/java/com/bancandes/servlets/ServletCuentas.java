@@ -113,7 +113,7 @@ public class ServletCuentas extends HttpServlet {
         
         String id = request.getParameter("idCuenta");
         int idCuenta = Integer.parseInt(id);
-        int monto = Integer.parseInt(request.getParameter("monto"));
+        double monto = Double.parseDouble(request.getParameter("monto"));
         String metodo = request.getParameter("metodo");
 
         Operacion op = new Operacion();
@@ -222,7 +222,7 @@ public class ServletCuentas extends HttpServlet {
                     
                     Usuario usuarioCuentas=UsuarioDao.findUsuarioByCorreo(correo, null);                           
                     listaCuentas = CuentaDao.getCuentasByPropietario(usuarioCuentas.getId());
-                    if(listaCuentas.size()==0) 
+                    if(listaCuentas==null || listaCuentas.isEmpty() ) 
                     {
                         request.setAttribute("msgOperacion", "No se encontraron cuentas para "+correo);
                     }

@@ -161,7 +161,7 @@
             <div class="collapse navbar-collapse navbar-ex1-collapse">
                 <ul class="nav navbar-nav side-nav">
                     <li>
-                        <a href="${pageContext.request.contextPath}/menus/menu.jsp"><i class="fa fa-fw fa-dashboard"></i> Inicio</a>
+                        <a href="${pageContext.request.contextPath}/ServletConsultas"><i class="fa fa-fw fa-dashboard"></i> Inicio</a>
                     </li>
                     
                    
