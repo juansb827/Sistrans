@@ -45,6 +45,12 @@ public class ServletConsultas extends HttpServlet {
             String consulta = request.getParameter("consulta");
             if (consulta != null) {
                 mostrarConsulta(request, response, null, consulta);
+                
+            }
+            String mostrarConsulta = request.getParameter("mostrarConsulta");
+            if(mostrarConsulta!=null)
+            {
+                mostrarConsulta(request, response, null, mostrarConsulta);
             }
 
             request.getRequestDispatcher("menus/consultas.jsp").forward(request, response);
@@ -54,6 +60,7 @@ public class ServletConsultas extends HttpServlet {
 
         }
     }
+    
 
     private void mostrarConsulta(HttpServletRequest request, HttpServletResponse response, Usuario usuario, String consulta) {
         ArrayList<FilaEnConsulta> resultado = null;
@@ -95,7 +102,7 @@ public class ServletConsultas extends HttpServlet {
 
     /**
      * Handles the HTTP <code>POST</code> method.
-     *
+X     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs

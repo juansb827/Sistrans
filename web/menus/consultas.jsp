@@ -230,8 +230,27 @@
                             </div>
                         </div>
                     </c:if>
-
-                    <c:if test="${listaBusuqeda==null}">
+                    <c:if test="${consulta=='CONSULTA_CUENTAS' }">
+                        <form>
+                            <input hidden="true" value="${consulta}">
+                            <select name="filtro">
+                                <option value="TIPO">Tipo de cuenta</option>
+                                <option value="RANGO_SALDOS">Rango saldos saldo1,saldo2</option>
+                                <option value="FECHA_CREACION">Fecha creacion</option>
+                                <option value="FECHA_ULTIMA_MOVIMIENTO">Fecha ultimo movimiento</option>                                
+                            </select>
+                            <select name="grupo">
+                                <option value="TIPO">Tipo de cuenta</option>
+                                <option value="RANGO_SALDOS">Rango saldos saldo1,saldo2</option>
+                                    <option value="FECHA_CREACION">Fecha creacion</option>
+                                <option value="FECHA_ULTIMA_MOVIMIENTO">Fecha ultimo movimiento</option>                                
+                            </select>
+                            <input placeholder="ORDEN" 
+                            <input type="submit" name="confirmarOperacion" value="BUSCAR">
+                        </form>
+                    </c:if>
+                    
+                    <c:if test="${listaBusuqeda==null && consulta==null}">
                         <form>
                             <select name="consulta">
                                 <option value="CONSULTA_CLIENTE">Consultar clientes</option>

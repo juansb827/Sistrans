@@ -20,11 +20,11 @@ import java.util.logging.Logger;
  */
 public class Conexion {
     
-        private final static String URL = "";
+              private final static String URL = "jdbc:oracle:thin:@157.253.238.7:1521:prod";
 
-	private final static String USER = "";
+	private final static String USER = "ISIS2304031520";
 
-	private final static String PASSWORD = "";
+	private final static String PASSWORD = "p8vQJgypqTB5";
 
 	private final static String DRIVER_NAME = "oracle.jdbc.driver.OracleDriver";
         
@@ -68,6 +68,16 @@ public class Conexion {
             System.out.println("Error");
         }
           
+        }
+        
+        public void rollback()
+        {
+                  try {
+                      if (conexion!=null);
+                      conexion.rollback();
+                  } catch (SQLException ex) {
+                      Logger.getLogger(Conexion.class.getName()).log(Level.SEVERE, null, ex);
+                  }
         }
         
   
